@@ -1,0 +1,26 @@
+# env_gs：Python 3.10 + CUDA 12.x（可与 2DGS 官方 environment.yml 对齐）
+# 用途：仅 2D Gaussian Splatting（Object A / Background 重建与 mesh 导出）
+#
+# 创建环境示例 A（推荐，与 2DGS 官方一致）：
+#   cd 2dgs_aigc/dependences/2d-gaussian-splatting
+#   conda env create -f environment.yml -n env_gs
+#   conda activate env_gs
+#   pip install -r ../../requirements_env_gs.txt   # 补本工程封装层
+#   bash ../../script/install_2dgs_deps.sh
+#
+# 创建环境示例 B（自建 3.10）：
+#   conda create -n env_gs python=3.10 -y
+#   conda activate env_gs
+#   pip install -r 2dgs_aigc/requirements_env_gs.txt
+#   bash 2dgs_aigc/script/install_2dgs_deps.sh
+#
+# gs.project_root 见 configs/objectA.yaml、configs/background.yaml 的 gs: 段。
+
+# --- 本工程封装层 ---
+PyYAML>=6.0.1
+wandb>=0.17.0
+tqdm>=4.66.0
+numpy>=1.26.0
+packaging>=24.0
+imageio>=2.34.0
+trimesh>=4.4.0

@@ -1,0 +1,6 @@
+# 已拆分为四个 Conda 环境，请按需安装：
+#
+#   pip install -r 2dgs_aigc/requirements_env_colmap.txt    # env_colmap：COLMAP
+#   pip install -r 2dgs_aigc/requirements_env_gs.txt        # env_gs：2DGS
+#   pip install -r 2dgs_aigc/requirements_env_threestudio.txt
+#   pip install -r 2dgs_aigc/requirements_env_magic123.txt

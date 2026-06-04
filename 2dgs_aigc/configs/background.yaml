@@ -1,0 +1,33 @@
+seed: 0
+
+conda:
+  env_gs: env_gs
+
+cuda:
+  enable: true
+  device_ids: "0"
+
+paths:
+  # 例如 Mip-NeRF 360 的 garden/bicycle/counter 等场景目录
+  raw_dataset_dir: data/raw/background_dataset/garden
+  processed_dir: data/processed/background
+  gs_dir: data/processed/background/2dgs
+  mesh_out: assets/meshes/background.obj
+
+wandb:
+  enable: true
+  mode: online
+  project: 2dgs_aigc
+  entity: null
+  name: background
+  tags: [background, 2dgs, mipnerf360]
+
+gs:
+  project_root: dependences/2d-gaussian-splatting
+  work_dir: "${paths.gs_dir}"
+  iteration: 30000
+  train_commands:
+    - "python train.py -s {raw_dataset_dir} -m {work_dir} --quiet"
+  export_mesh_commands:
+    - "python render.py --iteration {iteration} -s {raw_dataset_dir} -m {work_dir} --skip_train --skip_test --quiet"
+    - "cp {work_dir}/train/ours_{iteration}/fuse_post.ply {mesh_out}"

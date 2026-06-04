@@ -1,0 +1,31 @@
+seed: 0
+
+conda:
+  env_magic123: env_magic123
+
+cuda:
+  enable: true
+  device_ids: "0"
+
+paths:
+#change the path to the image you want to use👇
+  input_image: data/raw/objectC_images/car.png
+  processed_dir: data/processed/objectC
+  mesh_out: assets/meshes/objectC.obj
+
+wandb:
+  enable: true
+  mode: online
+  project: 2dgs_aigc
+  entity: null
+  name: objectC
+  tags: [objectC, magic123, image-to-3d]
+
+magic123:
+  project_root: null # 例如 /path/to/Magic123
+  work_dir: "${paths.processed_dir}/magic123_run"
+  # 命令模板（不同实现差异较大，这里给可配置占位）
+  run_commands:
+    - "python run.py --image {input_image} --outdir {work_dir} --seed {seed}"
+  export_mesh_commands:
+    - "python export_mesh.py --indir {work_dir} --out {mesh_out}"

@@ -1,0 +1,17 @@
+# env_colmap：Python 3.10
+# 用途：仅 COLMAP 位姿估计（Object A 的 extract_frames + colmap 流程）
+#
+# 创建环境：
+#   conda create -n env_colmap python=3.10 -y
+#   conda activate env_colmap
+#   pip install -r 2dgs_aigc/requirements_env_colmap.txt
+#
+# COLMAP 本体请用 conda-forge 或本地编译安装，例如：
+#   conda install -c conda-forge colmap ffmpeg
+
+# --- 本工程封装层（跑 pipeline 调度）---
+PyYAML>=6.0.1
+wandb>=0.17.0
+tqdm>=4.66.0
+numpy>=1.26.0
+packaging>=24.0

@@ -1,0 +1,25 @@
+# env_magic123：Python 3.10 + CUDA 12.x
+# 用途：Object C 单图到 3D（Magic123）
+#
+# 创建环境示例：
+#   conda create -n env_magic123 python=3.10 -y
+#   conda activate env_magic123
+#   pip install -r 2dgs_aigc/requirements_env_magic123.txt
+#   # 再按 Magic123 官方文档安装其依赖
+
+# --- 本工程封装层 ---
+PyYAML>=6.0.1
+wandb>=0.17.0
+tqdm>=4.66.0
+numpy>=1.26.0
+packaging>=24.0
+imageio>=2.34.0
+
+# --- Magic123 核心依赖（版本请与所用 Magic123 仓库 README 对齐）---
+# torch>=2.1.0
+# torchvision>=0.16.0
+# diffusers>=0.25.0
+# transformers>=4.36.0
+# accelerate>=0.25.0
+# trimesh>=4.0.0
+# rembg>=2.0.50   # 若需自动抠图

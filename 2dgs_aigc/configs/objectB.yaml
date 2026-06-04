@@ -1,0 +1,35 @@
+seed: 0
+
+conda:
+  env_name: env_threestudio
+
+cuda:
+  enable: true
+  device_ids: "0"
+
+paths:
+#change the path to the text you want to use👇
+  prompt_file: data/raw/objectB_text/dragon.txt
+  processed_dir: data/processed/objectB
+  mesh_out: assets/meshes/objectB.obj
+
+wandb:
+  enable: true
+  mode: online
+  project: 2dgs_aigc
+  entity: null
+  name: objectB
+  tags: [objectB, threestudio, sds, text-to-3d]
+
+threestudio:
+  project_root: null # 例如 /path/to/threestudio
+  work_dir: "${paths.processed_dir}/threestudio_run"
+  prompt: "a cute ceramic teapot with blue floral pattern, studio lighting, high detail"
+  # 也可以用 prompt_file 覆盖
+
+  # 命令模板：适配 threestudio 的不同入口（如 python launch.py / scripts/train.py / threestudio 命令）
+  train_commands:
+    - "python launch.py --config configs/text-to-3d.yaml --train --tag {wandb_name} system.prompt='{prompt}' trainer.seed={seed} exp_root_dir={work_dir}"
+
+  export_mesh_commands:
+    - "python launch.py --config configs/text-to-3d.yaml --export --tag {wandb_name} exp_root_dir={work_dir} export.save_path={mesh_out}"
