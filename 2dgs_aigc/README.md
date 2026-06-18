@@ -3,7 +3,7 @@
 本目录提供一个**配置驱动、模块化、可脚本化**的工程骨架，用于完成作业要求的全链路流程：
 
 - **Object A**：真实多视角（COLMAP 位姿）+ 2DGS 重建
-- **Object B**：threestudio 文本到 3D（SDS）
+- **Object B**：threestudio SDI 文本到 3D（Score Distillation via Reparametrized DDIM）
 - **Object C**：Magic123 单图到 3D
 - **Background**：开源数据集场景 2DGS 重建
 - **Fusion & Rendering**：统一导出 + Blender 融合漫游渲染
@@ -34,7 +34,7 @@
 |--------|--------|------|----------|----------|
 | `env_colmap` | 3.10 | — | **仅** Object A 的抽帧 + COLMAP | `requirements_env_colmap.txt` |
 | `env_gs` | 3.10 / 3.8* | 12.x | **仅** 2DGS（Object A / Background 重建、mesh 导出） | `requirements_env_gs.txt` |
-| `env_threestudio` | 3.10 | 12.x | Object B 文本生成 3D | `requirements_env_threestudio.txt` |
+| `env_sdi` | 3.10 | 12.x | Object B 文本生成 3D（SDI） | `requirements_env_sdi.txt` |
 | `env_magic123` | 3.10 | 12.x | Object C 单图生成 3D | `requirements_env_magic123.txt` |
 
 \* 若用 2DGS 官方 `environment.yml` 创建 `env_gs`，其 Python 可能为 3.8，与课程建议 3.10 略有出入，以 2DGS 仓库为准。
@@ -55,8 +55,9 @@ conda activate env_gs
 pip install -r ../../requirements_env_gs.txt
 bash ../../script/install_2dgs_deps.sh
 
-conda create -n env_threestudio python=3.10 -y && conda activate env_threestudio
-pip install -r 2dgs_aigc/requirements_env_threestudio.txt
+conda create -n env_sdi python=3.10 -y && conda activate env_sdi
+pip install -r 2dgs_aigc/requirements_env_sdi.txt
+pip install -r 2dgs_aigc/dependences/threestudio/requirements.txt
 
 conda create -n env_magic123 python=3.10 -y && conda activate env_magic123
 pip install -r 2dgs_aigc/requirements_env_magic123.txt
@@ -117,7 +118,7 @@ bash 2dgs_aigc/script/run_objectA.sh      # env_colmap + env_gs
 3) Object B（文本生成）
 
 ```bash
-bash 2dgs_aigc/script/run_objectB.sh      # env_threestudio
+bash 2dgs_aigc/script/run_objectB.sh      # env_sdi
 ```
 
 4) Object C（单图生成）
@@ -157,7 +158,7 @@ bash 2dgs_aigc/script/run_fusion_render.sh
 
 - `configs/objectA.yaml`：COLMAP 输入、2DGS 命令、`cuda`、`conda.env_colmap` / `conda.env_gs`
 - `configs/background.yaml`：背景数据集路径、2DGS 训练命令模板、`cuda`
-- `configs/objectB.yaml`：threestudio 项目路径/命令模板 + prompt、`cuda`
+- `configs/objectB.yaml`：SDI 配置（`sdi.config=configs/sdi.yaml`）、prompt、`cuda`、`conda.env_sdi`
 - `configs/objectC.yaml`：Magic123 项目路径/命令模板 + 输入图像、`cuda`
 - `configs/fusion.yaml`：mesh 路径、摆放参数、相机轨迹、渲染与 `cuda`（Blender GPU）
 

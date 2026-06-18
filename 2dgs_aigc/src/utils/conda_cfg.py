@@ -8,7 +8,7 @@ from typing import Any, Mapping
 class CondaEnvConfig:
     env_colmap: str = "env_colmap"
     env_gs: str = "env_gs"
-    env_threestudio: str = "env_threestudio"
+    env_sdi: str = "env_sdi"
     env_magic123: str = "env_magic123"
 
     @classmethod
@@ -19,6 +19,6 @@ class CondaEnvConfig:
         return cls(
             env_colmap=str(c.get("env_colmap", "env_colmap")),
             env_gs=str(c.get("env_gs", legacy_gs or "env_gs")),
-            env_threestudio=str(c.get("env_threestudio", "env_threestudio")),
+            env_sdi=str(c.get("env_sdi", c.get("env_threestudio", "env_sdi"))),
             env_magic123=str(c.get("env_magic123", "env_magic123")),
         )

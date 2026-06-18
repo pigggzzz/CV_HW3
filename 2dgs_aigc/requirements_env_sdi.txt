@@ -1,0 +1,17 @@
+# env_sdi：Python 3.10 + CUDA 12.x
+# 用途：Object B 文本到 3D（threestudio 的 SDI 方法，非全量框架）
+#
+# 创建环境：
+#   conda create -n env_sdi python=3.10 -y
+#   conda activate env_sdi
+#   pip install -r 2dgs_aigc/requirements_env_sdi.txt
+#   pip install -r 2dgs_aigc/dependences/threestudio/requirements.txt
+#
+# SDI 配置：dependences/threestudio/configs/sdi.yaml
+
+# --- 本工程封装层 ---
+PyYAML>=6.0.1
+wandb>=0.17.0
+tqdm>=4.66.0
+numpy>=1.26.0
+packaging>=24.0

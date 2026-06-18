@@ -9,10 +9,10 @@ cuda:
 
 paths:
   # 例如 Mip-NeRF 360 的 garden/bicycle/counter 等场景目录
-  raw_dataset_dir: data/raw/background_dataset/garden
+  raw_dataset_dir: data/raw/background_dataset/flowers
   processed_dir: data/processed/background
   gs_dir: data/processed/background/2dgs
-  mesh_out: assets/meshes/background.obj
+  mesh_out: assets/meshes/background.ply
 
 wandb:
   enable: true

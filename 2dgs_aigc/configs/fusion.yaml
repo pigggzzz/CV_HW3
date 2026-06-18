@@ -1,11 +1,11 @@
 # Blender 渲染用 GPU（与 conda 无关；由 run_fusion_render.sh 注入环境变量）
 cuda:
   enable: true
-  device_ids: "0"   # 物理 GPU 编号，如 "0" / "1" / "0,1"
+  device_ids: "0,1,2"   # 物理 GPU 编号，如 "0" / "1" / "0,1"
 
 paths:
-  background_mesh: assets/meshes/background.obj
-  objectA_mesh: assets/meshes/objectA.obj
+  background_mesh: assets/meshes/background.ply
+  objectA_mesh: assets/meshes/objectA.ply
   objectB_mesh: assets/meshes/objectB.obj
   objectC_mesh: assets/meshes/objectC.obj
   blender_scene_out: assets/blender/fusion_scene.blend

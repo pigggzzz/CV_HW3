@@ -5,27 +5,90 @@ conda:
 
 cuda:
   enable: true
-  device_ids: "0"
+  device_ids: "2"
 
 paths:
-#change the path to the image you want to use👇
-  input_image: data/raw/objectC_images/car.png
+  # Magic123 需要 4 通道 RGBA 输入图（可用 rembg 等工具抠图）
+  input_image: data/raw/objectC_images/hamburger_rgba.png
+  # 文本 prompt 从此文件读取；若不存在则使用 magic123.prompt
+  prompt_file: data/raw/objectC_text/hamburger.txt
+  # 相对 2dgs_aigc/ 根目录；pipeline 会转成绝对路径再传给 threestudio
   processed_dir: data/processed/objectC
   mesh_out: assets/meshes/objectC.obj
 
 wandb:
+  # 外层 pipeline 记录阶段；训练 loss 由 threestudio WandbLogger 上报（见 magic123.wandb_*）
   enable: true
   mode: online
   project: 2dgs_aigc
   entity: null
-  name: objectC
-  tags: [objectC, magic123, image-to-3d]
+  name: objectC-hamburger
+  tags: [objectC, magic123, image-to-3d, hamburger]
 
+# Magic123 via threestudio (Zero123 + Stable Diffusion)
+# 官方示例: dependences/threestudio/README.md#magic123-
 magic123:
-  project_root: null # 例如 /path/to/Magic123
+  project_root: dependences/threestudio
+  coarse_config: configs/magic123-coarse-sd.yaml
+  refine_config: configs/magic123-refine-sd.yaml
+  exp_name_coarse: magic123-coarse-sd
+  exp_name_refine: magic123-refine-sd
   work_dir: "${paths.processed_dir}/magic123_run"
-  # 命令模板（不同实现差异较大，这里给可配置占位）
-  run_commands:
-    - "python run.py --image {input_image} --outdir {work_dir} --seed {seed}"
+  prompt: "a delicious hamburger"
+  # 配合 cuda.device_ids=2，launch.py 内使用可见的第 0 号卡
+  gpu: "0"
+  # threestudio 训练 run（WandB Panel: train/loss_sd, train/loss_sd_3d, train/loss_rgb 等）
+  wandb_project: 2dgs_aigc
+  wandb_run_coarse: objectC-hamburger-coarse
+  wandb_run_refine: objectC-hamburger-refine
+  # 若输入图非正面视角，可调整 elevation/azimuth
+  default_elevation_deg: 0.0
+  default_azimuth_deg: 0.0
+  # refine 阶段 isosurface 阈值（默认 25；表面不完整则减小， extrude 过多则增大）
+  isosurface_threshold: null
+  # 与 threestudio magic123-refine-sd.yaml 中 trainer.max_steps 一致
+  export_iter: 10000
+
+  train_commands:
+    - >-
+      python launch.py --config {coarse_config}
+      --train --gpu {gpu}
+      exp_root_dir={work_dir}
+      tag={wandb_name}
+      use_timestamp=false
+      seed={seed}
+      data.image_path={input_image}
+      data.default_elevation_deg={default_elevation_deg}
+      data.default_azimuth_deg={default_azimuth_deg}
+      system.prompt_processor.prompt="{prompt}"
+      system.loggers.wandb.enable=true
+      system.loggers.wandb.project={wandb_project}
+      system.loggers.wandb.name={wandb_run_coarse}
+    - >-
+      python launch.py --config {refine_config}
+      --train --gpu {gpu}
+      exp_root_dir={work_dir}
+      tag={wandb_name}
+      use_timestamp=false
+      seed={seed}
+      data.image_path={input_image}
+      data.default_elevation_deg={default_elevation_deg}
+      data.default_azimuth_deg={default_azimuth_deg}
+      system.prompt_processor.prompt="{prompt}"
+      system.geometry_convert_from={coarse_ckpt}
+      {isosurface_threshold_arg}
+      system.loggers.wandb.enable=true
+      system.loggers.wandb.project={wandb_project}
+      system.loggers.wandb.name={wandb_run_refine}
+
   export_mesh_commands:
-    - "python export_mesh.py --indir {work_dir} --out {mesh_out}"
+    - >-
+      python launch.py
+      --config {work_dir}/{exp_name_refine}/{wandb_name}/configs/parsed.yaml
+      --export --gpu {gpu}
+      exp_root_dir={work_dir}
+      resume={work_dir}/{exp_name_refine}/{wandb_name}/ckpts/last.ckpt
+      system.exporter_type=mesh-exporter
+      system.exporter.fmt=obj
+      system.exporter.save_uv=false
+    - cp {work_dir}/{exp_name_refine}/{wandb_name}/save/it{export_iter}-export/model.obj {mesh_out}

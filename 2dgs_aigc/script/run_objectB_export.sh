@@ -10,4 +10,4 @@ activate_conda_env env_sdi
 apply_cuda_from_config "$CFG" "$ROOT"
 
 export PYTHONPATH="$ROOT/2dgs_aigc:${PYTHONPATH:-}"
-python -m src.text_to_3d.run_objectB --config "$CFG"
+python -m src.text_to_3d.run_objectB --config "$CFG" --export-only

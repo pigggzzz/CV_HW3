@@ -1,64 +1,67 @@
 seed: 0
 
-# Conda：COLMAP 与 2DGS 分环境（与 script/run_objectA.sh 一致）
 conda:
   env_colmap: env_colmap
   env_gs: env_gs
 
-# CUDA：enable=false 时不使用 GPU；device_ids 指定物理 GPU 编号（如 "0" 或 "1"）
 cuda:
   enable: true
-  device_ids: "0"
+  device_ids: "1,2,3"
 
 paths:
   raw_video_dir: data/raw/objectA_videos
   processed_dir: data/processed/objectA
   colmap_dir: data/processed/objectA/colmap
   gs_dir: data/processed/objectA/2dgs
-  mesh_out: assets/meshes/objectA.obj
+  mesh_out: assets/meshes/objectA.ply
 
 wandb:
   enable: true
-  mode: online # online/offline/disabled
+  mode: online
   project: 2dgs_aigc
   entity: null
   name: objectA
   tags: [objectA, colmap, 2dgs]
 
 external:
-  # 你可以填绝对路径，或保持为命令名（要求已在 PATH 中）
   colmap_bin: colmap
   ffmpeg_bin: ffmpeg
 
 colmap:
-  # 输入可以是视频或多视角图片目录：
-  # - 若是视频：放在 raw_video_dir 下，脚本会抽帧到 processed_dir/frames
-  # - 若是图片：直接放到 processed_dir/images 并将 extract_frames.enable=false
+  # 每次重跑前清理旧 database/sparse/dense，避免 IMAGE_EXISTS 残留导致只注册极少视角
+  reset_workspace: true
+  min_registered_images: 15
+
+  # 输入二选一：
+  # A) 环绕视频：enable=true，抽帧到 frames/
+  # B) 多视角照片：enable=false，把 JPG/PNG 放到 images/ 并改 image_dir
   extract_frames:
-    enable: true
-    #change the path to the video you want to use👇
+    enable: false
     input_video: "${paths.raw_video_dir}/bottle_video.mp4"
-    fps: 5
+    fps: 3
     out_dir: "${paths.processed_dir}/frames"
 
-  image_dir: "${paths.processed_dir}/frames"
+  # 若用多视角照片，改为: "${paths.processed_dir}/images"
+  image_dir: "${paths.processed_dir}/images"
   database_path: "${paths.colmap_dir}/database.db"
   sparse_dir: "${paths.colmap_dir}/sparse"
   undistorted_dir: "${paths.colmap_dir}/dense"
 
-  # COLMAP 典型流程（可按你自己的参数调整）
+  # 针对环绕视频/物体的 COLMAP 参数（sequential_matcher 更适合视频序列）
   commands:
-    - "{colmap_bin} feature_extractor --database_path {database_path} --image_path {image_dir} --ImageReader.single_camera 1"
-    - "{colmap_bin} exhaustive_matcher --database_path {database_path}"
-    - "{colmap_bin} mapper --database_path {database_path} --image_path {image_dir} --output_path {sparse_dir}"
+    - "{colmap_bin} feature_extractor --database_path {database_path} --image_path {image_dir} --ImageReader.single_camera 1 --ImageReader.camera_model PINHOLE --FeatureExtraction.max_image_size 3200"
+    - "{colmap_bin} sequential_matcher --database_path {database_path} --SequentialMatching.overlap 15 --SequentialMatching.quadratic_overlap 1"
+    - "{colmap_bin} mapper --database_path {database_path} --image_path {image_dir} --output_path {sparse_dir} --Mapper.multiple_models 0 --Mapper.ba_refine_focal_length 1 --Mapper.min_num_matches 15 --Mapper.init_min_num_inliers 30 --Mapper.abs_pose_min_num_inliers 15"
     - "{colmap_bin} image_undistorter --image_path {image_dir} --input_path {sparse_dir}/0 --output_path {undistorted_dir} --output_type COLMAP"
 
 gs:
   project_root: dependences/2d-gaussian-splatting
   work_dir: "${paths.gs_dir}"
   iteration: 30000
+  # 小物体/少视角数据集不要用 --eval
   train_commands:
     - "python train.py -s {colmap_undistorted_dir} -m {work_dir} --quiet"
+  # 物体级 mesh 提取参数（避免默认 TSDF 尺度过大变成一团）
   export_mesh_commands:
-    - "python render.py --iteration {iteration} -s {colmap_undistorted_dir} -m {work_dir} --skip_train --skip_test --quiet"
+    - "python render.py --iteration {iteration} -s {colmap_undistorted_dir} -m {work_dir} --skip_train --skip_test --quiet --num_cluster 1 --voxel_size 0.004 --sdf_trunc 0.02 --depth_trunc 3.0"
     - "cp {work_dir}/train/ours_{iteration}/fuse_post.ply {mesh_out}"

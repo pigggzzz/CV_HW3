@@ -1,17 +1,20 @@
 seed: 0
 
 conda:
-  env_name: env_threestudio
+  env_sdi: env_sdi
 
 cuda:
   enable: true
-  device_ids: "0"
+  device_ids: "1"
 
 paths:
-#change the path to the text you want to use👇
+  # SDI 训练 prompt 从此文件读取
   prompt_file: data/raw/objectB_text/dragon.txt
+  # 相对 2dgs_aigc/ 根目录；pipeline 会转成绝对路径再传给 threestudio
   processed_dir: data/processed/objectB
   mesh_out: assets/meshes/objectB.obj
+  # 高精度导出时的完整资产目录（.obj + .mtl + 贴图）
+  mesh_assets_dir: assets/meshes/objectB
 
 wandb:
   enable: true
@@ -19,17 +22,55 @@ wandb:
   project: 2dgs_aigc
   entity: null
   name: objectB
-  tags: [objectB, threestudio, sds, text-to-3d]
+  tags: [objectB, sdi, text-to-3d]
 
-threestudio:
-  project_root: null # 例如 /path/to/threestudio
-  work_dir: "${paths.processed_dir}/threestudio_run"
-  prompt: "a cute ceramic teapot with blue floral pattern, studio lighting, high detail"
-  # 也可以用 prompt_file 覆盖
+# SDI: Score Distillation via Reparametrized DDIM（threestudio/configs/sdi.yaml）
+sdi:
+  project_root: dependences/threestudio
+  config: configs/sdi.yaml
+  exp_name: score-distillation-via-inversion
+  work_dir: "${paths.processed_dir}/sdi_run"
+  # prompt 由 paths.prompt_file 提供，此处留空即可
+  prompt: null
+  gpu: "1"
+  # 导出 mesh 时使用的 GPU（训练占用 GPU1 时可改为空闲卡，如 "2"）
+  export_gpu: "2"
+  # 与 threestudio configs/sdi.yaml 中 trainer.max_steps 一致
+  export_iter: 10000
+  # 网格提取精度（默认 128）；256 需配合 mc-cpu（仓库无 256_tets.npz）
+  isosurface_resolution: 256
+  isosurface_method: mc-cpu
+  # 等值面采样分块；0 表示不分块（GPU 显存充足时更稳）
+  isosurface_chunk: 0
+  texture_size: 2048
 
-  # 命令模板：适配 threestudio 的不同入口（如 python launch.py / scripts/train.py / threestudio 命令）
   train_commands:
-    - "python launch.py --config configs/text-to-3d.yaml --train --tag {wandb_name} system.prompt='{prompt}' trainer.seed={seed} exp_root_dir={work_dir}"
+    - >-
+      python launch.py --config {config}
+      --train --gpu {gpu}
+      exp_root_dir={work_dir}
+      tag={wandb_name}
+      use_timestamp=false
+      seed={seed}
+      system.prompt_processor.prompt="{prompt}"
 
   export_mesh_commands:
-    - "python launch.py --config configs/text-to-3d.yaml --export --tag {wandb_name} exp_root_dir={work_dir} export.save_path={mesh_out}"
+    - >-
+      python launch.py
+      --config {work_dir}/{exp_name}/{wandb_name}/configs/parsed.yaml
+      --export --gpu 0
+      exp_root_dir={work_dir}
+      resume={work_dir}/{exp_name}/{wandb_name}/ckpts/last.ckpt
+      system.geometry.isosurface_method={isosurface_method}
+      system.geometry.isosurface_resolution={isosurface_resolution}
+      system.geometry.isosurface_chunk={isosurface_chunk}
+      system.exporter_type=mesh-exporter
+      system.exporter.fmt=obj-mtl
+      system.exporter.save_uv=true
+      system.exporter.save_texture=true
+      system.exporter.texture_size={texture_size}
+    - mkdir -p {mesh_assets_dir}
+    - cp {work_dir}/{exp_name}/{wandb_name}/save/it{export_iter}-export/model.obj {mesh_assets_dir}/model.obj
+    - cp {work_dir}/{exp_name}/{wandb_name}/save/it{export_iter}-export/model.mtl {mesh_assets_dir}/model.mtl
+    - cp {work_dir}/{exp_name}/{wandb_name}/save/it{export_iter}-export/texture_kd.jpg {mesh_assets_dir}/texture_kd.jpg
+    - cp {mesh_assets_dir}/model.obj {mesh_out}

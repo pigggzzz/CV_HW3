@@ -19,3 +19,11 @@ def ensure_dir(p: str | Path) -> Path:
     d.mkdir(parents=True, exist_ok=True)
     return d
 
+
+def resolve_work_dir(work_dir: str | None, default: str = "outputs") -> str:
+    """
+    threestudio 在 dependences/threestudio 下运行；相对路径会误写到
+    dependences/threestudio/data/...，因此 work_dir 必须转成 2dgs_aigc 下的绝对路径。
+    """
+    return str(abs_path(work_dir or default))
+

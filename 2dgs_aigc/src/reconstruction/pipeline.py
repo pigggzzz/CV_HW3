@@ -6,6 +6,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
+from src.reconstruction.colmap_utils import (
+    normalize_undistorted_colmap_layout,
+    reset_colmap_workspace,
+    validate_colmap_result,
+)
 from src.utils.cuda import build_cuda_env, get_cuda_config
 from src.utils.config import get_wandb_config, load_yaml
 from src.utils.paths import abs_path, ensure_dir
@@ -133,12 +138,40 @@ def run_reconstruction(config_path: str | Path, *, stage: str = "all") -> None:
     if stage in ("all", "colmap"):
         if not has_colmap:
             raise ValueError(f"配置 {cfg_path} 无 colmap 段，不能使用 --stage colmap")
+        wandb_log(run, {"stage": "reset_colmap_workspace"})
+        reset_colmap_workspace(cfg, mapping)
         wandb_log(run, {"stage": "extract_frames"})
         _maybe_extract_frames(cfg, mapping, log_dir)
         wandb_log(run, {"stage": "colmap"})
         run_colmap(cfg, mapping, log_dir=log_dir)
+        undist = mapping.get("colmap_undistorted_dir") or mapping.get("undistorted_dir")
+        if undist:
+            normalize_undistorted_colmap_layout(undist)
+        colmap_stats = validate_colmap_result(
+            cfg,
+            sparse_root=Path(mapping.get("sparse_dir", "")),
+            image_dir=mapping.get("image_dir"),
+        )
+        wandb_log(run, colmap_stats)
+        if undist:
+            undist_stats = validate_colmap_result(
+                cfg,
+                sparse_root=Path(undist) / "sparse",
+                image_dir=Path(undist) / "images",
+            )
+            wandb_log(run, {f"undist_{k}": v for k, v in undist_stats.items()})
 
     if stage in ("all", "gs"):
+        if has_colmap:
+            undist = mapping.get("colmap_undistorted_dir") or mapping.get("undistorted_dir")
+            if undist:
+                normalize_undistorted_colmap_layout(undist)
+                colmap_stats = validate_colmap_result(
+                    cfg,
+                    sparse_root=Path(undist) / "sparse",
+                    image_dir=Path(undist) / "images",
+                )
+                wandb_log(run, colmap_stats)
         wandb_log(run, {"stage": "2dgs_train"})
         run_2dgs_train(cfg, mapping, log_dir=log_dir)
         wandb_log(run, {"stage": "2dgs_export"})
