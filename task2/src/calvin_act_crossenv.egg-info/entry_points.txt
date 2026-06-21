@@ -1,0 +1,2 @@
+[console_scripts]
+crossenv-act = crossenv_act.cli:main

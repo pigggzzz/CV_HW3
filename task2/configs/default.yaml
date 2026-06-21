@@ -1,0 +1,24 @@
+repo_id: xiaoma26/calvin-lerobot
+revision: main
+data_dir: ./data
+output_dir: ./output
+policy: act
+basic_env: B
+joint_envs: [A, B, C]
+zero_shot_env: D
+train:
+  steps: 100000
+  batch_size: 8
+  num_workers: 4
+  lr: 1e-5
+  weight_decay: 1e-4
+  seed: 1000
+act:
+  chunk_size: 100
+  n_action_steps: 100
+  vision_backbone: resnet18
+  dim_model: 512
+  n_heads: 8
+  n_encoder_layers: 4
+  n_decoder_layers: 1
+  kl_weight: 10.0
