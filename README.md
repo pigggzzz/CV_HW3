@@ -7,7 +7,10 @@ https://github.com/user-attachments/assets/979ce9c1-6711-43dc-a38b-54441dc675bd
 
 ## 题目二：基于LeRobot 的ACT 策略跨环境泛化挑战
 
-https://github.com/pigggzzz/CV_HW3/tree/master/ACT/asset/b/seqid_0024_start_1536_mean_l1_0.555
+https://github.com/user-attachments/assets/d5d6e468-dc23-4ea5-906c-d4ffb72d687a
+
+https://github.com/user-attachments/assets/4f575b1b-477b-461a-86fb-f305c1cbeb91
+
 
 ```bash
 conda create -n ACT python=3.12
