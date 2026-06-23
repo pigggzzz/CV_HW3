@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "calvin-act-crossenv"
+version = "1.0.0"
+description = "LeRobot ACT cross-environment generalization package for CALVIN homework"
+requires-python = ">=3.10"
+dependencies = [
+  "huggingface_hub>=0.23",
+  "pandas",
+  "pyarrow",
+  "tqdm",
+  "wandb",
+]
+
+[project.scripts]
+crossenv-act = "crossenv_act.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

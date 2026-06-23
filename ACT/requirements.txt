@@ -1,0 +1,8 @@
+# Install LeRobot separately according to your CUDA/PyTorch environment.
+huggingface_hub>=0.23
+pandas
+pyarrow
+tqdm
+wandb
+jsonlines
+safetensors
