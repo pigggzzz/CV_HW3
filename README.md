@@ -6,11 +6,8 @@ https://github.com/user-attachments/assets/979ce9c1-6711-43dc-a38b-54441dc675bd
 漫游渲染视频
 
 ## 题目二：基于LeRobot 的ACT 策略跨环境泛化挑战
-<div align="center">
 
-[▶ Watch demo video](/ACT/asset/b/seqid_0024_start_1536_mean_l1_0.555.mp4)
-
-</div>
+https://github.com/pigggzzz/CV_HW3/tree/master/ACT/asset/b/seqid_0024_start_1536_mean_l1_0.555
 
 ```bash
 conda create -n ACT python=3.12
