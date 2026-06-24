@@ -1,0 +1,10 @@
+Metadata-Version: 2.4
+Name: calvin-act-crossenv
+Version: 1.0.0
+Summary: LeRobot ACT cross-environment generalization package for CALVIN homework
+Requires-Python: >=3.10
+Requires-Dist: huggingface_hub>=0.23
+Requires-Dist: pandas
+Requires-Dist: pyarrow
+Requires-Dist: tqdm
+Requires-Dist: wandb
